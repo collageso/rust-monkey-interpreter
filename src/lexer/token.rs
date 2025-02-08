@@ -1,10 +1,5 @@
+#[derive(Debug)]
 pub enum Token {
-    // Identifier and Literals
-    Identifier(String),
-    IntLiteral(i64),
-    // Operators
-    Assign,
-    Plus,
     // Puctuations
     Comma,
     Semicolon,
@@ -12,8 +7,17 @@ pub enum Token {
     RightParen,
     LeftBrace,
     RightBrace,
-    // Reserved words
+    // Operators
+    Assign,
+    Plus,
+    // Identifier and Literals
+    StringLiteral(String),
+    IntLiteral(i64),
+    // Reserved words and Identifier
     Function,
     Let,
     Return,
+    Indent(String),
+    // Etc
+    EndOfFile,
 }
