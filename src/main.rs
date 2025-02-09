@@ -22,10 +22,7 @@ fn main() {
 
             for token in lexer {
                 match token {
-                    Ok(t) => {
-                        println!("{:?} token", t);
-                        tokens.push(t)
-                    }
+                    Ok(t) => tokens.push(t),
                     Err(e) => {
                         eprintln!("LexerError occured: {:?}", e);
                         return;

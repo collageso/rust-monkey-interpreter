@@ -35,6 +35,21 @@ impl<'a> Lexer<'a> {
         Some(current_char)
     }
 
+    fn lex_combined_operator(
+        &mut self,
+        combined: Token,
+        single: Token,
+    ) -> Result<Token, LexerError> {
+        let next_token = self.peek_char().unwrap_or('0');
+
+        if next_token == '=' {
+            self.read_char();
+            Ok(combined)
+        } else {
+            Ok(single)
+        }
+    }
+
     fn lex_string(&mut self) -> Result<Token, LexerError> {
         let position = self.next_position;
         let mut is_end = false;
@@ -51,7 +66,6 @@ impl<'a> Lexer<'a> {
         }
 
         let str = &self.input[position..self.position];
-        self.read_char();
 
         Ok(Token::StringLiteral(str.to_string()))
     }
@@ -59,11 +73,11 @@ impl<'a> Lexer<'a> {
     fn lex_number(&mut self) -> Result<Token, LexerError> {
         let position = self.position;
 
-        if let Some(next_ch) = self.peek_char() {
+        while let Some(next_ch) = self.peek_char() {
             if next_ch.is_ascii_digit() {
-                loop {
-                    self.read_char();
-                }
+                self.read_char();
+            } else {
+                break;
             }
         }
 
@@ -80,11 +94,11 @@ impl<'a> Lexer<'a> {
     fn lex_ident(&mut self) -> Result<Token, LexerError> {
         let position = self.position;
 
-        if let Some(next_ch) = self.peek_char() {
+        while let Some(next_ch) = self.peek_char() {
             if next_ch.is_ascii_alphabetic() || next_ch == '_' {
-                loop {
-                    self.read_char();
-                }
+                self.read_char();
+            } else {
+                break;
             }
         }
 
@@ -93,6 +107,10 @@ impl<'a> Lexer<'a> {
         match str {
             "fn" => Ok(Token::Function),
             "let" => Ok(Token::Let),
+            "true" => Ok(Token::True),
+            "false" => Ok(Token::False),
+            "if" => Ok(Token::If),
+            "else" => Ok(Token::Else),
             "return" => Ok(Token::Return),
             _ => Ok(Token::Indent(str.to_string())),
         }
@@ -111,15 +129,27 @@ impl<'a> Iterator for Lexer<'a> {
                 ')' => return Some(Ok(Token::RightParen)),
                 '{' => return Some(Ok(Token::LeftBrace)),
                 '}' => return Some(Ok(Token::RightBrace)),
-                '=' => return Some(Ok(Token::Assign)),
                 '+' => return Some(Ok(Token::Plus)),
+                '-' => return Some(Ok(Token::Minus)),
+                '*' => return Some(Ok(Token::Asterisk)),
+                '/' => return Some(Ok(Token::Slash)),
+                '=' => return Some(self.lex_combined_operator(Token::Equal, Token::Assign)),
+                '!' => return Some(self.lex_combined_operator(Token::NotEqual, Token::Bang)),
+                '>' => {
+                    return Some(
+                        self.lex_combined_operator(Token::GreaterThanEqual, Token::GreaterThan),
+                    )
+                }
+                '<' => {
+                    return Some(self.lex_combined_operator(Token::LessThanEqual, Token::LessThan))
+                }
                 '"' => return Some(self.lex_string()),
                 ch if ch.is_ascii_digit() => return Some(self.lex_number()),
-                ch if ch.is_ascii_alphabetic() || ch == '_' => return Some(self.lex_ident()),
+                ch if (ch.is_ascii_alphabetic() || ch == '_') => return Some(self.lex_ident()),
                 ch if ch.is_whitespace() => continue,
                 _ => return Some(Err(LexerError::UnexpectedCharacter(ch, self.position))),
             }
         }
-        Some(Ok(Token::EndOfFile))
+        None
     }
 }
