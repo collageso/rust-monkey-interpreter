@@ -1,17 +1,20 @@
+#[derive(Debug, PartialEq)]
 pub enum Token {
+    Illegal,
+    Eof,
     // Identifier + Literals
-    Identifier,
-    Int,
+    Identifier(String),
+    Int(i64),
     // Operators
     Assign,
     Plus,
     // Punctuations
     Comma,
     Semicolon,
-    LParen,
-    RParen,
-    LBrace,
-    RBrace,
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
     // Reserved Words
     Function,
     Let,
