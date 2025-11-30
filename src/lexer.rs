@@ -23,8 +23,28 @@ impl<'a> Lexer<'a> {
         self.skip_whitespace();
 
         let token = match self.ch {
-            '=' => Token::Assign,
+            '=' => {
+                if self.peak_char() == '=' {
+                    self.read_char();
+                    Token::Equal
+                } else {
+                    Token::Assign
+                }
+            }
+            '!' => {
+                if self.peak_char() == '=' {
+                    self.read_char();
+                    Token::NotEqual
+                } else {
+                    Token::Bang
+                }
+            }
             '+' => Token::Plus,
+            '-' => Token::Minus,
+            '/' => Token::Slash,
+            '*' => Token::Asterisk,
+            '<' => Token::LessThan,
+            '>' => Token::GreaterThan,
             ',' => Token::Comma,
             ';' => Token::Semicolon,
             '(' => Token::LeftParen,
@@ -68,6 +88,17 @@ impl<'a> Lexer<'a> {
         } else {
             self.read_position += self.ch.len_utf8();
         }
+    }
+
+    fn peak_char(&self) -> char {
+        if self.read_position >= self.input.len() {
+            return '\0';
+        }
+
+        self.input[self.read_position..]
+            .chars()
+            .next()
+            .unwrap_or('\0')
     }
 
     fn read_identifier(&mut self) -> &'a str {
@@ -121,7 +152,18 @@ mod tests {
     };
 
     let result = add(five,ten);
-"#;
+    !-/*5;
+    5 < 10 > 5;
+
+    if (5 < 10) {
+        return true;
+    } else {
+        return false;
+    }
+
+    10 == 10;
+    10 != 9;
+    "#;
 
         let mut lexer = Lexer::new(input);
 
@@ -167,6 +209,52 @@ mod tests {
             Token::Comma,
             Token::Identifier("ten".to_string()),
             Token::RightParen,
+            Token::Semicolon,
+            // !-/*5;
+            Token::Bang,
+            Token::Minus,
+            Token::Slash,
+            Token::Asterisk,
+            Token::Int(5),
+            Token::Semicolon,
+            // 5 < 10 > 5;
+            Token::Int(5),
+            Token::LessThan,
+            Token::Int(10),
+            Token::GreaterThan,
+            Token::Int(5),
+            Token::Semicolon,
+            // if (5 < 10) {
+            Token::If,
+            Token::LeftParen,
+            Token::Int(5),
+            Token::LessThan,
+            Token::Int(10),
+            Token::RightParen,
+            Token::LeftBrace,
+            // return true;
+            Token::Return,
+            Token::True,
+            Token::Semicolon,
+            // } else {
+            Token::RightBrace,
+            Token::Else,
+            Token::LeftBrace,
+            // return false;
+            Token::Return,
+            Token::False,
+            Token::Semicolon,
+            // }
+            Token::RightBrace,
+            // 10 == 10;
+            Token::Int(10),
+            Token::Equal,
+            Token::Int(10),
+            Token::Semicolon,
+            // 10 != 9;
+            Token::Int(10),
+            Token::NotEqual,
+            Token::Int(9),
             Token::Semicolon,
             Token::Eof,
         ];

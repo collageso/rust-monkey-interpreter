@@ -1,5 +1,6 @@
-use rust_monkey_interpreter::{lexer, token};
+use rust_monkey_interpreter::repl::Repl;
 
 fn main() {
-    println!("Hello, world!");
+    let repl = Repl::new();
+    repl.start();
 }

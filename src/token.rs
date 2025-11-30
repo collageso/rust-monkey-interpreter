@@ -5,9 +5,18 @@ pub enum Token {
     // Identifier + Literals
     Identifier(String),
     Int(i64),
+    String(String),
     // Operators
     Assign,
     Plus,
+    Minus,
+    Bang,
+    Asterisk,
+    Slash,
+    LessThan,
+    GreaterThan,
+    Equal,
+    NotEqual,
     // Punctuations
     Comma,
     Semicolon,
@@ -18,6 +27,11 @@ pub enum Token {
     // Reserved Words
     Function,
     Let,
+    If,
+    Else,
+    True,
+    False,
+    Return,
 }
 
 impl Token {
@@ -25,6 +39,11 @@ impl Token {
         return match ident {
             "fn" => Token::Function,
             "let" => Token::Let,
+            "if" => Token::If,
+            "else" => Token::Else,
+            "true" => Token::True,
+            "false" => Token::False,
+            "return" => Token::Return,
             _ => Token::Identifier(ident.to_string()),
         };
     }
